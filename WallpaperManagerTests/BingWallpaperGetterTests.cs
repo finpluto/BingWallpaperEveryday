@@ -15,7 +15,7 @@ namespace WallpaperManager.Tests
         public void GetWallpaperTest()
         {
             BingWallpaperGetter getter = new BingWallpaperGetter();
-            string path = getter.GetWallpaper();
+            string path = getter.GetWallpaper().Result;
             Console.WriteLine(path);
             Assert.IsTrue(true);
         }

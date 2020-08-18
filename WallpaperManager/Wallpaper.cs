@@ -6,12 +6,13 @@ using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace WallpaperManager
 {
     public interface IWallpaperGetter
     {
-        string GetWallpaper();
+        Task<string> GetWallpaper();
     }
 
     public enum Style
@@ -40,9 +41,9 @@ namespace WallpaperManager
         }
 
         // source: https://stackoverflow.com/questions/1061678/change-desktop-wallpaper-using-code-in-net
-        public void SetWallpaper(Style style)
+        public async Task SetWallpaper(Style style)
         {
-            string wallpaperPath = getter.GetWallpaper();
+            string wallpaperPath = await getter.GetWallpaper();
             RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
             if (style == Style.Fill)
             {
@@ -90,11 +91,11 @@ namespace WallpaperManager
         private static readonly string bingWallpaperApi = "https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN";
         private Uri imgUri;
 
-        private void FetchWallpaperUri()
+        private async Task FetchWallpaperUri()
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(bingWallpaperApi);
             request.Method = "GET";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
             using (Stream s = response.GetResponseStream())
             using (StreamReader sr = new StreamReader(s))
             {
@@ -103,13 +104,13 @@ namespace WallpaperManager
                 imgUri = new Uri(baseUri, (string)json["images"][0]["url"]);
             }
         }
-        public string GetWallpaper()
+        public async Task<string> GetWallpaper()
         {
-            FetchWallpaperUri();
+            await FetchWallpaperUri();
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(imgUri);
             request.Method = "GET";
 
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
             using (Stream s = response.GetResponseStream())
             {
                 System.Drawing.Image img = System.Drawing.Image.FromStream(s);
